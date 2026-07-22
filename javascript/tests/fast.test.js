@@ -151,4 +151,24 @@ describe('fast unit tests', () => {
   test('session token merge', () => {
     expect(mergeDicts({ token: 'abc' }, { token: 'xyz' })).toEqual({ token: 'xyz' });
   });
+
+  test('add with zero', () => {
+    expect(add(0, 7)).toBe(7);
+  });
+
+  test('multiply by zero', () => {
+    expect(multiply(0, 100)).toBe(0);
+  });
+
+  test('divide negative numbers', () => {
+    expect(divide(-10, 2)).toBe(-5);
+  });
+
+  test('is palindrome single character', () => {
+    expect(isPalindrome('a')).toBe(true);
+  });
+
+  test('merge dicts empty source', () => {
+    expect(mergeDicts({}, { a: 1 })).toEqual({ a: 1 });
+  });
 });

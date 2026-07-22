@@ -168,3 +168,23 @@ def test_notification_payload_merge():
 def test_session_token_merge():
     session = merge_dicts({"token": "abc"}, {"token": "xyz"})
     assert session == {"token": "xyz"}
+
+
+def test_add_with_zero():
+    assert add(0, 7) == 7
+
+
+def test_multiply_by_zero():
+    assert multiply(0, 100) == 0
+
+
+def test_divide_negative_numbers():
+    assert divide(-10, 2) == -5.0
+
+
+def test_is_palindrome_single_character():
+    assert is_palindrome("a") is True
+
+
+def test_merge_dicts_empty_source():
+    assert merge_dicts({}, {"a": 1}) == {"a": 1}
