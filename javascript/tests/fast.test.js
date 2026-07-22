@@ -83,4 +83,28 @@ describe('fast unit tests', () => {
   test('clamp above maximum', () => {
     expect(clamp(15, 0, 10)).toBe(10);
   });
+
+  test('fibonacci negative throws', () => {
+    expect(() => fibonacci(-1)).toThrow('n must be non-negative');
+  });
+
+  test('chunk list odd length', () => {
+    expect(chunkList([1, 2, 3], 2)).toEqual([[1, 2], [3]]);
+  });
+
+  test('chunk list zero size throws', () => {
+    expect(() => chunkList([1, 2, 3], 0)).toThrow('size must be positive');
+  });
+
+  test('merge dicts key collision', () => {
+    expect(mergeDicts({ a: 1 }, { a: 2 })).toEqual({ a: 2 });
+  });
+
+  test('is palindrome empty string', () => {
+    expect(isPalindrome('')).toBe(true);
+  });
+
+  test('flatten empty list', () => {
+    expect(flatten([])).toEqual([]);
+  });
 });
