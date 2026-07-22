@@ -107,4 +107,48 @@ describe('fast unit tests', () => {
   test('flatten empty list', () => {
     expect(flatten([])).toEqual([]);
   });
+
+  test('user profile merge', () => {
+    expect(mergeDicts({ email: 'user@example.com' }, { name: 'User' })).toEqual({
+      email: 'user@example.com',
+      name: 'User',
+    });
+  });
+
+  test('monthly report total', () => {
+    expect(add(multiply(50, 99), 0)).toBe(4950);
+  });
+
+  test('checkout order total', () => {
+    const subtotal = multiply(25, 3);
+    expect(add(subtotal, 5)).toBe(80);
+  });
+
+  test('bulk import batching', () => {
+    expect(chunkList([1, 2, 3, 4, 5], 2)).toEqual([[1, 2], [3, 4], [5]]);
+  });
+
+  test('cache warmup fibonacci', () => {
+    expect(fibonacci(12)).toBe(144);
+  });
+
+  test('inventory stock decrement', () => {
+    const stock = subtract(5, 2);
+    expect(clamp(stock, 0, 10)).toBe(3);
+  });
+
+  test('api retry backoff clamp', () => {
+    expect(clamp(120, 1, 60)).toBe(60);
+  });
+
+  test('notification payload merge', () => {
+    expect(mergeDicts({ status: 'sent' }, { recipient: 'user@example.com' })).toEqual({
+      status: 'sent',
+      recipient: 'user@example.com',
+    });
+  });
+
+  test('session token merge', () => {
+    expect(mergeDicts({ token: 'abc' }, { token: 'xyz' })).toEqual({ token: 'xyz' });
+  });
 });

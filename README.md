@@ -8,8 +8,8 @@ A sandbox repository for exploring Datadog **CI Pipeline Visibility** and **Test
 |------------|-------------------|
 | **Pipeline Visibility** | Multiple workflows with multi-job pipelines, setup/teardown overhead, and varying job durations |
 | **Test Visibility** | Per-test traces, durations, and failure stack traces via Datadog Test Optimization |
-| **Slow tests** | 5 slow tests per language (3s–15s each) simulating DB queries, reports, and e2e flows |
-| **Flaky tests** | 5 flaky tests per language (~35–40% failure rate) for flake detection on `main` |
+| **Slow tests** | 1 slow test per language (~5s) exercising real `app` code; former slow scenarios live as passing fast tests |
+| **Flaky tests** | 1 flaky test per language (~40% failure rate); former flaky scenarios live as passing fast tests |
 
 ## Repository structure
 
@@ -74,10 +74,10 @@ Trigger workflows manually from the **Actions** tab, or push to `main` / open a 
 
 | Workflow | Trigger | What to expect |
 |----------|---------|----------------|
-| `PR Checks` | push, PR | Multi-job pipeline; may fail due to flaky tests |
-| `Python Tests` | push, PR | Full Python suite (~45s with slow tests) |
-| `JavaScript Tests` | push, PR | Full JavaScript suite (~45s with slow tests) |
-| `Integration Suite` | push to main | ~90s pipeline with setup overhead |
+| `PR Checks` | push, PR | Multi-job pipeline; may fail due to flaky test (~40%) |
+| `Python Tests` | push, PR | Full Python suite (33 fast + 1 slow + 1 flaky; ~5s slow portion) |
+| `JavaScript Tests` | push, PR | Full JavaScript suite (33 fast + 1 slow + 1 flaky; ~5s slow portion) |
+| `Integration Suite` | push to main | ~25s pipeline with setup overhead and one slow test per language |
 | `Scheduled Flaky Test Run` | every 4 hours | Flaky tests only; builds flake history |
 
 ## Where to look in Datadog
@@ -109,13 +109,17 @@ After ~5–10 scheduled runs on `main`:
 
 **Software Delivery → Test Optimization → Flaky Tests**
 
-Look for tests like `test_payment_gateway_timeout` and `payment gateway timeout` with mixed pass/fail on the default branch.
+Look for `test_payment_gateway_timeout` and `payment gateway timeout` with mixed pass/fail on the default branch.
+
+Former flaky scenarios (inventory, rate limits, notifications, sessions) now run as deterministic passing fast tests.
 
 ### Slow tests
 
 **Software Delivery → Test Optimization → Explorer → sort by Duration**
 
-Look for `test_generate_monthly_report` (8s), `test_full_checkout_flow` (15s), and their JavaScript equivalents.
+Look for `test_analytics_fibonacci_benchmark` and `analytics fibonacci benchmark` (~5s each).
+
+Former slow scenarios (user lookup, reports, checkout, bulk import, cache warmup) now run as deterministic passing fast tests.
 
 ## Running tests locally
 
