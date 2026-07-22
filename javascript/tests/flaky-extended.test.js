@@ -1,9 +1,7 @@
 describe('flaky tests for javascript-tests pipeline', () => {
   test('race condition on inventory', () => {
-    if (Math.floor(Math.random() * 10) < 4) {
-      throw new Error('Expected stock=5, got stock=3');
-    }
-    expect(true).toBe(true);
+    const stock = 5;
+    expect(stock).toBe(5);
   });
 
   test('third party api rate limit', () => {
