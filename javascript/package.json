@@ -5,7 +5,8 @@
   "scripts": {
     "test": "jest --verbose",
     "test:fast": "jest --verbose --testPathPattern=fast",
-    "test:slow": "jest --verbose --testPathPattern=slow",
+    "test:slow": "jest --verbose --testPathPattern=slow.test.js",
+    "test:slow-extended": "jest --verbose --testPathPattern=slow-extended",
     "test:flaky": "jest --verbose --testPathPattern=flaky.test.js",
     "test:flaky-extended": "jest --verbose --testPathPattern=flaky-extended"
   },
