@@ -1,0 +1,55 @@
+name: Scheduled Flaky Test Run
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"
+  workflow_dispatch:
+
+jobs:
+  scheduled-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: python/requirements.txt
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: javascript/package-lock.json
+
+      - name: Install Python dependencies
+        run: pip install -r python/requirements.txt
+
+      - name: Install JavaScript dependencies
+        working-directory: javascript
+        run: npm ci
+
+      - name: Configure Datadog Test Optimization
+        uses: datadog/test-visibility-github-action@v3
+        with:
+          languages: python js
+          api_key: ${{ secrets.DD_API_KEY }}
+          site: datadoghq.com
+
+      - name: Run Python flaky tests
+        working-directory: python
+        run: pytest tests/test_flaky.py -v
+        env:
+          DD_ENV: ci-visibility-demo
+          DD_SERVICE: scheduled-python-flaky
+
+      - name: Run JavaScript flaky tests
+        working-directory: javascript
+        run: npm run test:flaky
+        env:
+          DD_ENV: ci-visibility-demo
+          DD_SERVICE: scheduled-javascript-flaky
+          NODE_OPTIONS: -r ${{ env.DD_TRACE_PACKAGE }}

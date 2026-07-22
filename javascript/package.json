@@ -1,0 +1,14 @@
+{
+  "name": "ci-visibility-demo-javascript",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest --verbose",
+    "test:fast": "jest --verbose --testPathPattern=fast",
+    "test:slow": "jest --verbose --testPathPattern=slow",
+    "test:flaky": "jest --verbose --testPathPattern=flaky"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
