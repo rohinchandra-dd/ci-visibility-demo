@@ -125,3 +125,46 @@ def test_is_palindrome_empty_string():
 
 def test_flatten_empty_list():
     assert flatten([]) == []
+
+
+def test_user_profile_merge():
+    profile = merge_dicts({"email": "user@example.com"}, {"name": "User"})
+    assert profile == {"email": "user@example.com", "name": "User"}
+
+
+def test_monthly_report_total():
+    assert add(multiply(50, 99), 0) == 4950
+
+
+def test_checkout_order_total():
+    subtotal = multiply(25, 3)
+    total = add(subtotal, 5)
+    assert total == 80
+
+
+def test_bulk_import_batching():
+    records = [1, 2, 3, 4, 5]
+    assert chunk_list(records, 2) == [[1, 2], [3, 4], [5]]
+
+
+def test_cache_warmup_fibonacci():
+    assert fibonacci(12) == 144
+
+
+def test_inventory_stock_decrement():
+    stock = subtract(5, 2)
+    assert clamp(stock, 0, 10) == 3
+
+
+def test_api_retry_backoff_clamp():
+    assert clamp(120, 1, 60) == 60
+
+
+def test_notification_payload_merge():
+    payload = merge_dicts({"status": "sent"}, {"recipient": "user@example.com"})
+    assert payload == {"status": "sent", "recipient": "user@example.com"}
+
+
+def test_session_token_merge():
+    session = merge_dicts({"token": "abc"}, {"token": "xyz"})
+    assert session == {"token": "xyz"}
