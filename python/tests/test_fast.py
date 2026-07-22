@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from app import (
@@ -188,3 +190,49 @@ def test_is_palindrome_single_character():
 
 def test_merge_dicts_empty_source():
     assert merge_dicts({}, {"a": 1}) == {"a": 1}
+
+
+@pytest.mark.parametrize(
+    "a,b,expected",
+    [
+        (1, 1, 2),
+        (2, 3, 5),
+        (10, 15, 25),
+        (100, 200, 300),
+        (-1, 1, 0),
+        (0, 0, 0),
+        (7, 8, 15),
+        (12, 13, 25),
+        (99, 1, 100),
+        (42, 58, 100),
+    ],
+)
+def test_add_parametrized(a, b, expected):
+    assert add(a, b) == expected
+
+
+@pytest.mark.parametrize(
+    "a,b,expected",
+    [
+        (10, 3, 7),
+        (20, 5, 15),
+        (100, 50, 50),
+        (0, 0, 0),
+        (5, 10, -5),
+    ],
+)
+def test_subtract_parametrized(a, b, expected):
+    assert subtract(a, b) == expected
+
+
+@pytest.mark.parametrize(
+    "n,expected",
+    [
+        (2, 1),
+        (3, 2),
+        (5, 5),
+        (6, 8),
+    ],
+)
+def test_fibonacci_parametrized(n, expected):
+    assert fibonacci(n) == expected

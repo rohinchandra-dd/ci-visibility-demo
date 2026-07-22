@@ -17,4 +17,18 @@ describe('flaky tests for javascript-tests pipeline', () => {
     }
     expect(true).toBe(true);
   });
+
+  test('email delivery is eventually consistent', () => {
+    if (Math.random() < 0.35) {
+      throw new Error('SMTP connection reset');
+    }
+    expect(true).toBe(true);
+  });
+
+  test('async notification delivery', () => {
+    if (Math.floor(Math.random() * 10) < 3) {
+      throw new Error('Notification not received within 5s');
+    }
+    expect(true).toBe(true);
+  });
 });

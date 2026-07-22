@@ -171,4 +171,38 @@ describe('fast unit tests', () => {
   test('merge dicts empty source', () => {
     expect(mergeDicts({}, { a: 1 })).toEqual({ a: 1 });
   });
+
+  test.each([
+    [1, 1, 2],
+    [2, 3, 5],
+    [10, 15, 25],
+    [100, 200, 300],
+    [-1, 1, 0],
+    [0, 0, 0],
+    [7, 8, 15],
+    [12, 13, 25],
+    [99, 1, 100],
+    [42, 58, 100],
+  ])('add parametrized %i + %i', (a, b, expected) => {
+    expect(add(a, b)).toBe(expected);
+  });
+
+  test.each([
+    [10, 3, 7],
+    [20, 5, 15],
+    [100, 50, 50],
+    [0, 0, 0],
+    [5, 10, -5],
+  ])('subtract parametrized %i - %i', (a, b, expected) => {
+    expect(subtract(a, b)).toBe(expected);
+  });
+
+  test.each([
+    [2, 1],
+    [3, 2],
+    [5, 5],
+    [6, 8],
+  ])('fibonacci parametrized n=%i', (n, expected) => {
+    expect(fibonacci(n)).toBe(expected);
+  });
 });
