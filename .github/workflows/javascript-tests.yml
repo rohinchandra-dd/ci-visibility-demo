@@ -32,7 +32,7 @@ jobs:
 
       - name: Run JavaScript tests
         working-directory: javascript
-        run: npm test
+        run: npm run test:fast && npm run test:slow && npm run test:flaky && npm run test:flaky-extended
         env:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: javascript-tests
