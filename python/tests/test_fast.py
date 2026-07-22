@@ -93,3 +93,35 @@ def test_clamp_below_minimum():
 
 def test_clamp_above_maximum():
     assert clamp(15, 0, 10) == 10
+
+
+def test_fibonacci_negative_raises():
+    try:
+        fibonacci(-1)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_chunk_list_odd_length():
+    assert chunk_list([1, 2, 3], 2) == [[1, 2], [3]]
+
+
+def test_chunk_list_zero_size_raises():
+    try:
+        chunk_list([1, 2, 3], 0)
+        assert False, "Expected ValueError"
+    except ValueError:
+        pass
+
+
+def test_merge_dicts_key_collision():
+    assert merge_dicts({"a": 1}, {"a": 2}) == {"a": 2}
+
+
+def test_is_palindrome_empty_string():
+    assert is_palindrome("") is True
+
+
+def test_flatten_empty_list():
+    assert flatten([]) == []
