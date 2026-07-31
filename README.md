@@ -25,18 +25,40 @@ This repo contains a working full-stack app (FastAPI + React) with **~1,900 test
 
 ## Quick start
 
-### Run the app
+No Docker required. Local dev uses Python (SQLite) and Node only. CI uses GitHub Actions services for Postgres.
+
+### First-time setup
 
 ```bash
-docker compose up --build
-# API: http://localhost:8000/health
-# UI:  http://localhost:5173
+make setup
+# or: ./scripts/setup.sh
 ```
+
+### Run the app
+
+**Option A — one command (starts API + UI):**
+
+```bash
+make dev
+# or: ./scripts/dev.sh
+```
+
+**Option B — two terminals:**
+
+```bash
+# Terminal 1
+make dev-api
+
+# Terminal 2
+make dev-frontend
+```
+
+- API: http://localhost:8000/health
+- UI:  http://localhost:5173
 
 ### Run tests locally
 
 ```bash
-make install
 make test          # fast tests only
 make test-baseline # full suite (slow — ~30 min)
 ```
@@ -75,7 +97,9 @@ ci-visibility-demo/
 │   ├── integration-suite.yml  # Slow integration pipeline
 │   └── scheduled.yml          # Cron for flaky test history
 ├── docs/DEMO.md               # Step-by-step customer demo script
-└── docker-compose.yml         # Postgres + API + frontend
+└── scripts/
+    ├── setup.sh               # Install Python + Node deps (no Docker)
+    └── dev.sh                 # Start API + frontend locally
 ```
 
 ## Datadog setup (datadoghq.com)

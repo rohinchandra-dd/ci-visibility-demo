@@ -1,27 +1,34 @@
-.PHONY: dev test test-baseline lint install
+.PHONY: setup install dev dev-api dev-frontend test test-baseline lint test-python test-js
+
+setup:
+	./scripts/setup.sh
+
+install: setup
 
 dev:
-	docker compose up --build
+	./scripts/dev.sh
 
-install:
-	cd python && pip install -r requirements.txt
-	cd javascript && npm install
+dev-api:
+	cd python && PYTHONPATH=src .venv/bin/uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
+
+dev-frontend:
+	cd javascript && npm run dev
 
 lint:
-	cd python && ruff check src tests
+	cd python && .venv/bin/ruff check src
 	cd javascript && npm run lint
 
 test:
-	cd python && pytest tests/ -v -m "not slow and not flaky"
+	cd python && .venv/bin/pytest tests/ -v -m "not slow and not flaky"
 	cd javascript && npm run test:fast
 
 test-baseline:
-	cd python && pytest tests/ -v --ddtrace
+	cd python && .venv/bin/pytest tests/ -v --ddtrace
 	cd javascript && npm run test:all
 	cd javascript && npm run test:e2e
 
 test-python:
-	cd python && pytest tests/ -v
+	cd python && .venv/bin/pytest tests/ -v
 
 test-js:
 	cd javascript && npm run test:all

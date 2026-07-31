@@ -14,10 +14,13 @@ Use this script when demoing Datadog **Test Optimization**, **Test Parallelizati
 ### 1. Show the product (5 min)
 
 ```bash
-docker compose up --build
+make setup   # first time only
+make dev
 ```
 
 Open http://localhost:5173 — create an account, publish an article, browse the feed. This establishes that this is a real application, not a toy test harness.
+
+> No Docker needed. The app uses SQLite locally; Postgres is only used in GitHub Actions CI.
 
 ### 2. Baseline CI — the "before" (10 min setup, ~30 min run)
 
@@ -93,6 +96,7 @@ git push -u origin demo/tia-comment-fix
 
 ## Troubleshooting
 
+- **No Docker?** Not required. Use `make setup` then `make dev`.
 - **No test traces?** Verify `DD_API_KEY` secret and `datadog/test-visibility-github-action@v3` in workflow
 - **TIA not skipping?** Confirm repo registered and TIA enabled in Test Service Settings; need 3+ commits on default branch
 - **ddtest plan fails?** Check `ddtrace>=4.11.0` and `dd-trace>=5.111.0` versions
