@@ -1,10 +1,10 @@
-const { fibonacci, mergeDicts } = require('../src/app');
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe('slow tests for javascript-tests pipeline', () => {
+const { fibonacci, mergeDicts } = require('../../src/utils');
+
+describe('slow tests', () => {
   test('user lookup by email', async () => {
     await sleep(3000);
     const user = mergeDicts({ email: 'user@example.com' }, { active: true });
@@ -20,4 +20,13 @@ describe('slow tests for javascript-tests pipeline', () => {
     await sleep(5000);
     expect(fibonacci(8)).toBe(21);
   });
+});
+
+describe('slow extended tests', () => {
+  for (let i = 1; i <= 12; i += 1) {
+    test(`analytics batch ${i}`, async () => {
+      await sleep(5000);
+      expect(fibonacci(10 + i)).toBeGreaterThan(0);
+    });
+  }
 });

@@ -9,6 +9,15 @@ on:
 jobs:
   python-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: pulse
+          POSTGRES_PASSWORD: pulse
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
 
@@ -35,3 +44,4 @@ jobs:
         env:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: python-tests
+          DATABASE_URL: postgresql://pulse:pulse@localhost:5432/pulse_test

@@ -2,12 +2,21 @@ name: Scheduled Flaky Test Run
 
 on:
   schedule:
-    - cron: "0 */4 * * *"
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
 jobs:
-  scheduled-tests:
+  flaky-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: pulse
+          POSTGRES_PASSWORD: pulse
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
 
@@ -25,12 +34,10 @@ jobs:
           cache: npm
           cache-dependency-path: javascript/package-lock.json
 
-      - name: Install Python dependencies
-        run: pip install -r python/requirements.txt
-
-      - name: Install JavaScript dependencies
-        working-directory: javascript
-        run: npm ci
+      - name: Install dependencies
+        run: |
+          pip install -r python/requirements.txt
+          cd javascript && npm ci
 
       - name: Configure Datadog Test Optimization
         uses: datadog/test-visibility-github-action@v3
@@ -41,13 +48,16 @@ jobs:
 
       - name: Run Python flaky tests
         working-directory: python
-        run: pytest tests/test_flaky.py -v
+        continue-on-error: true
+        run: pytest tests/flaky -v
         env:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: scheduled-python-flaky
+          DATABASE_URL: postgresql://pulse:pulse@localhost:5432/pulse_test
 
       - name: Run JavaScript flaky tests
         working-directory: javascript
+        continue-on-error: true
         run: npm run test:flaky
         env:
           DD_ENV: ci-visibility-demo

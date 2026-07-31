@@ -13,17 +13,26 @@ jobs:
 
       - name: Boot services
         run: |
-          echo "Starting database..."
+          echo "Starting Postgres..."
           sleep 10
-          echo "Starting cache..."
+          echo "Starting Redis cache..."
           sleep 10
-          echo "Starting message queue..."
+          echo "Warming API..."
           sleep 10
-          echo "Services ready"
+          echo "Setup complete"
 
   integration-tests:
     runs-on: ubuntu-latest
     needs: setup
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: pulse
+          POSTGRES_PASSWORD: pulse
+          POSTGRES_DB: pulse_test
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v4
 
@@ -41,26 +50,32 @@ jobs:
           cache: npm
           cache-dependency-path: javascript/package-lock.json
 
-      - name: Install Python dependencies
-        run: pip install -r python/requirements.txt
-
-      - name: Install JavaScript dependencies
-        working-directory: javascript
-        run: npm ci
+      - name: Install dependencies
+        run: |
+          pip install -r python/requirements.txt
+          cd javascript && npm ci
 
       - name: Configure Datadog Test Optimization (Python)
         uses: datadog/test-visibility-github-action@v3
         with:
-          languages: python js
+          languages: python
           api_key: ${{ secrets.DD_API_KEY }}
           site: datadoghq.com
 
-      - name: Run Python slow tests
+      - name: Run Python slow integration tests
         working-directory: python
-        run: pytest tests/test_slow.py -v
+        run: pytest tests/slow tests/integration -v
         env:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: integration-python
+          DATABASE_URL: postgresql://pulse:pulse@localhost:5432/pulse_test
+
+      - name: Configure Datadog Test Optimization (JavaScript)
+        uses: datadog/test-visibility-github-action@v3
+        with:
+          languages: js
+          api_key: ${{ secrets.DD_API_KEY }}
+          site: datadoghq.com
 
       - name: Run JavaScript slow tests
         working-directory: javascript
@@ -75,8 +90,8 @@ jobs:
     needs: integration-tests
     if: always()
     steps:
-      - name: Clean up services
+      - name: Cleanup
         run: |
-          echo "Stopping services..."
+          echo "Tearing down services..."
           sleep 5
           echo "Cleanup complete"
