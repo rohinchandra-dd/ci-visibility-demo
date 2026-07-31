@@ -1,0 +1,7 @@
+line-length = 100
+target-version = "py312"
+
+[lint.per-file-ignores]
+"tests/**/*_generated.py" = ["F401", "F403", "F405", "E402"]
+"tests/unit/test_*_generated.py" = ["F401", "F403", "F405"]
+"src/api/*.py" = ["B008"]

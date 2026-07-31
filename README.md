@@ -1,171 +1,191 @@
-# CI Visibility Demo
+# Pulse Community — CI Visibility Demo
 
-A sandbox repository for exploring Datadog **CI Pipeline Visibility** and **Test Optimization**. It runs multiple GitHub Actions workflows with intentionally slow and flaky tests across Python (pytest) and JavaScript (Jest).
+A **Forem-inspired community platform** built to demo Datadog **CI Pipeline Visibility**, **Test Optimization**, **Test Parallelization**, and **Test Impact Analysis**.
 
-## What this repo demonstrates
+This repo contains a working full-stack app (FastAPI + React) with **~1,900 tests** across Python (pytest), JavaScript (Jest), and Playwright E2E — designed to show dramatic before/after CI improvements in customer demos.
+
+## What this demonstrates
 
 | Capability | How it's generated |
 |------------|-------------------|
-| **Pipeline Visibility** | Multiple workflows with multi-job pipelines, setup/teardown overhead, and varying job durations |
-| **Test Visibility** | Per-test traces, durations, and failure stack traces via Datadog Test Optimization |
-| **Slow tests** | 1 slow test per language (~5s) exercising real `app` code; former slow scenarios live as passing fast tests |
-| **Flaky tests** | 1 flaky test per language (~40% failure rate); former flaky scenarios live as passing fast tests |
+| **Pipeline Visibility** | Multi-job CI with lint, build, matrix parallelization, E2E |
+| **Test Visibility** | Per-test traces via Datadog Test Optimization GitHub Action |
+| **Test Parallelization** | `ddtest plan` → matrix → `ddtest run` (up to 8 nodes) |
+| **Test Impact Analysis** | Small PRs skip unaffected tests (>80% reduction) |
+| **Slow tests** | Analytics/search integration tests (~5 min serial) |
+| **Flaky tests** | Notification/email tests (~38% failure rate) |
+
+## Expected CI durations
+
+| Workflow | Mode | Duration |
+|----------|------|----------|
+| `CI Baseline` | Serial, no TIA | ~25–35 min |
+| `CI` | Parallelized (8 nodes) | ~4–6 min |
+| `CI` + TIA | Small PR | ~1–3 min |
+
+## Quick start
+
+No Docker required. Local dev uses Python (SQLite) and Node only. CI uses GitHub Actions services for Postgres.
+
+### First-time setup
+
+```bash
+make setup
+# or: ./scripts/setup.sh
+```
+
+### Run the app
+
+**Option A — one command (starts API + UI):**
+
+```bash
+make dev
+# or: ./scripts/dev.sh
+```
+
+**Option B — two terminals:**
+
+```bash
+# Terminal 1
+make dev-api
+
+# Terminal 2
+make dev-frontend
+```
+
+- API: http://localhost:8000/health
+- UI:  http://localhost:5173
+
+### Run tests locally
+
+```bash
+make test          # fast tests only
+make test-baseline # full suite (slow — ~30 min)
+```
 
 ## Repository structure
 
 ```
 ci-visibility-demo/
+├── python/                    # FastAPI backend (Pulse API)
+│   ├── src/
+│   │   ├── api/               # REST endpoints
+│   │   ├── core/              # Config, auth, database
+│   │   ├── models/            # SQLAlchemy models
+│   │   └── services/          # Domain logic (users, articles, comments, …)
+│   └── tests/
+│       ├── unit/              # ~800 fast unit tests
+│       ├── api/               # FastAPI TestClient tests
+│       ├── integration/       # DB-backed workflow tests
+│       ├── slow/              # Analytics/search (~5 min serial)
+│       ├── flaky/             # Notification delivery (~38% fail)
+│       └── ddtest/excluded/   # TIA exclude-pattern canary
+├── javascript/                # React frontend (Vite)
+│   ├── src/                   # SPA components + API client
+│   └── tests/
+│       ├── unit/              # ~650 Jest tests
+│       ├── integration/       # API client tests
+│       ├── slow/              # Slow JS tests
+│       ├── flaky/             # Flaky JS tests
+│       └── e2e/               # Playwright (~21 tests)
 ├── .github/workflows/
-│   ├── pr-checks.yml          # Multi-job PR pipeline (lint → parallel tests → report)
-│   ├── python-tests.yml       # Full Python test suite
-│   ├── javascript-tests.yml   # Full JavaScript test suite
-│   ├── integration-suite.yml  # Slow integration pipeline with setup/teardown
-│   └── scheduled.yml          # Cron job for flaky test history on main
-├── python/                    # pytest suite (fast, slow, flaky)
-└── javascript/                # Jest suite (fast, slow, flaky)
+│   ├── ci-baseline.yml        # "Before" demo — serial full suite
+│   ├── ci.yml                 # "After" demo — ddtest parallel + TIA
+│   ├── pr-checks.yml          # PR pipeline (lint → tests → report)
+│   ├── python-tests.yml       # Full Python suite
+│   ├── javascript-tests.yml   # Full JavaScript suite
+│   ├── integration-suite.yml  # Slow integration pipeline
+│   └── scheduled.yml          # Cron for flaky test history
+├── docs/DEMO.md               # Step-by-step customer demo script
+└── scripts/
+    ├── setup.sh               # Install Python + Node deps (no Docker)
+    └── dev.sh                 # Start API + frontend locally
 ```
 
-## Setup checklist
+## Datadog setup (datadoghq.com)
 
-### 1. Push this repo to GitHub
+### 1. Push to GitHub
 
 ```bash
-git init
-git add .
-git commit -m "Initial CI Visibility demo repo"
 git remote add origin https://github.com/<your-org>/ci-visibility-demo.git
 git push -u origin main
 ```
 
-### 2. Enable Pipeline Visibility (GitHub App)
+### 2. Enable Pipeline Visibility
 
-Pipeline traces are collected automatically via the Datadog GitHub App — no workflow changes needed.
+1. **Software Delivery → CI Visibility → Add a Pipeline Provider → GitHub**
+2. Install the Datadog GitHub App
+3. Enable CI Visibility for this repository
 
-1. In Datadog, go to **Software Delivery → CI Visibility → Add a Pipeline Provider → GitHub**
-2. Install/configure the Datadog GitHub App on the account hosting this repo
-3. Enable **CI Visibility** for this repository
-4. Optionally enable **Job Logs Collection** for log correlation
+### 3. Enable Test Visibility
 
-Docs: [GitHub Actions Setup for CI Visibility](https://docs.datadoghq.com/continuous_integration/pipelines/github/)
+1. Create an API key in **Organization Settings → API Keys**
+2. Add GitHub secret `DD_API_KEY`
+3. Workflows already include `datadog/test-visibility-github-action@v3`
 
-### 3. Enable Test Visibility (agentless)
+### 4. Register for Test Optimization
 
-Test traces require the `DD_API_KEY` secret and the Datadog Test Visibility GitHub Action (already configured in workflows).
-
-1. In Datadog, go to **Organization Settings → API Keys** and create or copy an API key
-2. In GitHub, go to **Settings → Secrets and variables → Actions**
-3. Add a repository secret named `DD_API_KEY` with your API key value
-4. If your sandbox is not on US1, update `site:` in each workflow (e.g. `datadoghq.eu`)
-
-Docs: [Datadog Test Visibility GitHub Action](https://github.com/DataDog/test-visibility-github-action)
-
-### 4. Register the repository in Datadog (for future features)
-
-After the first test run, register the repo in **CI/CD Optimization → Settings → Repositories**:
+After the first test run, register in **CI/CD Optimization → Settings → Repositories**:
 
 - **Repository URL:** `https://github.com/<your-org>/ci-visibility-demo`
 - **Default branch:** `main`
 
-This unlocks Intelligent Test Runner, Early Flake Detection, and Flaky Test Management when you're ready to add them.
+Then enable **Test Impact Analysis** and **Test Parallelization** for:
+- `pulse-api`
+- `pulse-frontend`
+- `pulse-e2e`
 
-### 5. Run workflows
+### 5. Run demo workflows
 
-Trigger workflows manually from the **Actions** tab, or push to `main` / open a PR:
+| Workflow | When to use | Expected duration |
+|----------|-------------|-------------------|
+| `CI Baseline` | "Before" demo | ~25–35 min |
+| `CI` | "After" demo with parallelization | ~4–6 min |
+| `CI` on TIA demo PR | "After" with TIA | ~1–3 min |
+| `PR Checks` | Day-to-day PR validation | ~3–5 min |
+| `Scheduled Flaky Test Run` | Builds flaky history (every 4h) | ~1 min |
 
-| Workflow | Trigger | What to expect |
-|----------|---------|----------------|
-| `PR Checks` | push, PR | Multi-job pipeline; may fail due to flaky test (~40%) |
-| `Python Tests` | push, PR | Full Python suite (33 fast + 1 slow + 1 flaky; ~5s slow portion) |
-| `JavaScript Tests` | push, PR | Full JavaScript suite (33 fast + 1 slow + 1 flaky; ~5s slow portion) |
-| `Integration Suite` | push to main | ~25s pipeline with setup overhead and one slow test per language |
-| `Scheduled Flaky Test Run` | every 4 hours | Flaky tests only; builds flake history |
+See [docs/DEMO.md](docs/DEMO.md) for the full customer demo script.
 
 ## Where to look in Datadog
 
 ### Pipeline Visibility
+**Software Delivery → CI Visibility → Pipelines** — filter `@ci.env:ci-visibility-demo`
 
-**Software Delivery → CI Visibility → Pipelines**
-
-- Filter by repository: `ci-visibility-demo`
-- Open `PR Checks` or `Integration Suite` to see job-level flame graphs
-- Compare setup vs test time in `Integration Suite`
+Compare `CI Baseline` (single job) vs `CI` (matrix parallelization).
 
 ### Test Optimization Explorer
+**Software Delivery → Test Optimization → Explorer** — filter `env:ci-visibility-demo`
 
-**Software Delivery → Test Optimization → Explorer**
+Sort by duration to find slow tests like `test_analytics_fibonacci_benchmark`.
 
-Useful filters:
+### Flaky Tests
+**Software Delivery → Test Optimization → Flaky Tests** — look for `test_payment_gateway_timeout` after ~5–10 scheduled runs.
 
-| Filter | Value |
-|--------|-------|
-| `env` | `ci-visibility-demo` |
-| `service` | `python-tests`, `javascript-tests`, `pr-checks-python`, etc. |
-| `@test.status` | `fail` |
-| `@test.name` | `*payment_gateway*` |
+## Demo branches for TIA
 
-### Flaky tests
+| Branch | Change | Impact |
+|--------|--------|--------|
+| `demo/tia-comment-fix` | Edit `services/comments.py` | Skips most tests |
+| `demo/tia-shared-utils` | Edit `services/utils.py` | Runs cross-module tests |
+| `demo/tia-frontend-only` | Edit `ArticleEditor.jsx` | Skips Python tests |
 
-After ~5–10 scheduled runs on `main`:
+## Test services (DD_SERVICE values)
 
-**Software Delivery → Test Optimization → Flaky Tests**
-
-Look for `test_payment_gateway_timeout` and `payment gateway timeout` with mixed pass/fail on the default branch.
-
-Former flaky scenarios (inventory, rate limits, notifications, sessions) now run as deterministic passing fast tests.
-
-### Slow tests
-
-**Software Delivery → Test Optimization → Explorer → sort by Duration**
-
-Look for `test_analytics_fibonacci_benchmark` and `analytics fibonacci benchmark` (~5s each).
-
-Former slow scenarios (user lookup, reports, checkout, bulk import, cache warmup) now run as deterministic passing fast tests.
-
-## Running tests locally
-
-### Python
-
-```bash
-cd python
-pip install -r requirements.txt
-pytest tests/ -v                    # all tests
-pytest tests/ -v -m "not slow"      # skip slow tests
-pytest tests/test_flaky.py -v       # flaky only
-```
-
-### JavaScript
-
-```bash
-cd javascript
-npm install
-npm test                            # all tests
-npm run test:fast                   # fast only
-npm run test:slow                   # slow only
-npm run test:flaky                  # flaky only
-```
-
-## Workflows and test services
-
-| Workflow | DD_SERVICE values |
-|----------|-------------------|
-| `python-tests.yml` | `python-tests` |
-| `javascript-tests.yml` | `javascript-tests` |
-| `pr-checks.yml` | `pr-checks-python`, `pr-checks-javascript` |
-| `integration-suite.yml` | `integration-python`, `integration-javascript` |
-| `scheduled.yml` | `scheduled-python-flaky`, `scheduled-javascript-flaky` |
+| Workflow | DD_SERVICE |
+|----------|-----------|
+| CI Baseline | `pulse-api-baseline`, `pulse-frontend-baseline`, `pulse-e2e-baseline` |
+| CI (optimized) | `pulse-api`, `pulse-frontend`, `pulse-e2e` |
+| PR Checks | `pr-checks-python`, `pr-checks-javascript` |
+| Integration Suite | `integration-python`, `integration-javascript` |
+| Scheduled | `scheduled-python-flaky`, `scheduled-javascript-flaky` |
 
 All workflows use `DD_ENV=ci-visibility-demo`.
 
-## Notes
+## Regenerating bulk tests
 
-- **Flaky tests will fail CI intermittently** — this is intentional for demo purposes.
-- **Pipeline Visibility requires the GitHub App** — the API key alone only enables Test Visibility.
-- **Jest requires `NODE_OPTIONS`** — workflows set `NODE_OPTIONS: -r ${{ env.DD_TRACE_PACKAGE }}` per the action docs.
-- **Default branch matters** — flaky classification and the Pipeline List prioritize `main`. The scheduled workflow helps build history automatically.
+```bash
+python3 scripts/generate_parametrized_tests.py
+```
 
-## Future extensions
-
-- **Early Flake Detection:** Add a new flaky test on a feature branch and enable EFD in repo settings
-- **Intelligent Test Runner:** Enable ITR in CI/CD Optimization settings to skip unaffected tests
-- **Flaky Test Management:** Quarantine, disable, or attempt-to-fix flaky tests from the Flaky Tests UI
-- **Additional languages:** Add Go or Java test suites using the same action with `languages: go` or `languages: java`
+This regenerates parametrized unit/API tests used to reach demo-scale test volume. Do not edit `*_generated.py` / `generated.test.js` files by hand.

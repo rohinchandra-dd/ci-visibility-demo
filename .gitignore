@@ -8,3 +8,11 @@ htmlcov/
 .datadog/
 .venv/
 python/.venv/
+pulse.db
+.testoptimization/
+.ddtest-cache/
+javascript/dist/
+javascript/playwright-report/
+javascript/test-results/
+bin/ddtest
+python/pulse.db
