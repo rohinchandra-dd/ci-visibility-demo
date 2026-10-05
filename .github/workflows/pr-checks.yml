@@ -63,10 +63,15 @@ jobs:
 
       - name: Run Python unit tests
         working-directory: python
-        run: pytest tests/unit tests/api -v -m "not slow and not flaky"
+        run: pytest tests/unit tests/api tests/flaky -v -m "not slow"
         env:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: pr-checks-python
+          # Auto Test Retries. The Datadog UI toggle is what turns the feature on;
+          # these pin the retry budget so the demo can point at a concrete number.
+          DD_CIVISIBILITY_FLAKY_RETRY_ENABLED: 'true'
+          DD_CIVISIBILITY_FLAKY_RETRY_COUNT: '8'
+          DD_CIVISIBILITY_TOTAL_FLAKY_RETRY_COUNT: '200'
 
   javascript-unit:
     runs-on: ubuntu-latest
@@ -99,6 +104,10 @@ jobs:
           DD_ENV: ci-visibility-demo
           DD_SERVICE: pr-checks-javascript
           NODE_OPTIONS: -r ${{ env.DD_TRACE_PACKAGE }}
+          # Auto Test Retries. The Datadog UI toggle is what turns the feature on;
+          # these pin the retry budget so the demo can point at a concrete number.
+          DD_CIVISIBILITY_FLAKY_RETRY_ENABLED: 'true'
+          DD_CIVISIBILITY_FLAKY_RETRY_COUNT: '8'
 
   report:
     runs-on: ubuntu-latest
@@ -109,7 +118,9 @@ jobs:
         run: |
           echo "Python unit: ${{ needs.python-unit.result }}"
           echo "JavaScript unit: ${{ needs.javascript-unit.result }}"
-          if [ "${{ needs.python-unit.result }}" != "success" ]; then
+          if [ "${{ needs.python-unit.result }}" != "success" ] || \
+             [ "${{ needs.javascript-unit.result }}" != "success" ]; then
+            echo "A test failed every retry attempt - see the Datadog PR comment."
             exit 1
           fi
-          echo "PR checks completed (JS flaky failures are expected intermittently)"
+          echo "PR checks completed; Auto Test Retries absorbed any flakes."
